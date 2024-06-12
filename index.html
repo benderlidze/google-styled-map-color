@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .map-container {
+      -webkit-clip-path: polygon(0 4%, 101% 0, 100% 100%, 2% 100%, 0 73%);
+      clip-path: polygon(0 4%, 101% 0, 100% 100%, 2% 100%, 0 73%);
+      width: 100%;
+    }
+
+    #zoom-buttons-container {
+      position: relative;
+    }
+
+    #zoom-buttons-container svg {
+      position: absolute;
+      bottom: 30px;
+      left: 40px;
+      z-index: 1000;
+    }
+
+    #zoomIn,
+    #zoomOut {
+      cursor: pointer;
+    }
+  </style>
+  <!-- prettier-ignore -->
+  <script>(g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })
+      ({ key: "AIzaSyAAgZQ9KSIyyWKnPUfYDZ8ELEkPAK_BZdc", v: "weekly" });</script>
+</head>
+
+
+<body>
+
+  <div class="map-container">
+    <div id="map" style="width: 100%; height: 800px;"></div>
+    <div id="zoom-buttons-container">
+      <svg data-v-1acf7914="" width="100" viewBox="0 0 237 125" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path data-v-1acf7914="" d="M24 0.5L237 22V124.5H0.5L24 0.5Z" fill="#C37BB2"></path>
+        <g id="zoomIn">
+          <rect width="92" height="90" x="28" y="21" fill="#C37BB2"></rect>
+          <line x1="51" y1="66" x2="99" y2="66" stroke="black" stroke-width="2"></line>
+          <line x1="75" y1="44" x2="75" y2="90" stroke="black" stroke-width="2"></line>
+        </g>
+        <g id="zoomOut">
+          <rect width="92" height="90" x="122" y="21" fill="#C37BB2"></rect>
+          <line x1="144" y1="66" x2="192" y2="66" stroke="black" stroke-width="2"></line>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+    let currentActivePopup = null;
+    const allMarkers = []
+    const allData = []
+    let map;
+
+    async function initMap() {
+      const { Map } = await google.maps.importLibrary("maps");
+      const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+      const zoomIn = document.getElementById("zoomIn");
+      const zoomOut = document.getElementById("zoomOut");
+      const center = { lat: 52.31372126289754, lng: 4.951728413667311 };
+
+      map = new Map(document.getElementById("map"), {
+        zoom: 13,
+        center,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: false,
+        scaleControl: false,
+        rotateControl: false,
+        mapTypeId: "terrain",
+        styles: [{ featureType: "all", elementType: "labels.text.fill", stylers: [{ saturation: 36 }, { lightness: 40 }, { color: "#c769b1" }, { visibility: "on" }] }, { featureType: "all", elementType: "labels.text.stroke", stylers: [{ visibility: "on" }, { color: "#e9b9de" }] }, { featureType: "all", elementType: "labels.icon", stylers: [{ weight: "1.98" }, { visibility: "off" }] }, { featureType: "administrative", elementType: "geometry.fill", stylers: [{ lightness: 20 }] }, { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ lightness: 17 }, { weight: 1.2 }] }, { featureType: "administrative", elementType: "labels", stylers: [{ visibility: "off" }] }, { featureType: "administrative.country", elementType: "all", stylers: [{ visibility: "simplified" }] }, { featureType: "administrative.country", elementType: "geometry", stylers: [{ visibility: "simplified" }] }, { featureType: "administrative.country", elementType: "labels.text", stylers: [{ visibility: "simplified" }] }, { featureType: "administrative.province", elementType: "all", stylers: [{ visibility: "off" }] }, { featureType: "administrative.locality", elementType: "all", stylers: [{ visibility: "simplified" }, { saturation: "-100" }, { lightness: "30" }, { color: "#c37bb2" }] }, { featureType: "administrative.neighborhood", elementType: "all", stylers: [{ visibility: "off" }] }, { featureType: "administrative.land_parcel", elementType: "all", stylers: [{ visibility: "off" }] }, { featureType: "landscape", elementType: "all", stylers: [{ visibility: "simplified" }, { gamma: "0.00" }, { lightness: "74" }] }, { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#baa0ca" }, { lightness: 20 }] }, { featureType: "landscape", elementType: "geometry.fill", stylers: [{ color: "#deb9d6" }] }, { featureType: "landscape", elementType: "geometry.stroke", stylers: [{ visibility: "simplified" }] }, { featureType: "landscape", elementType: "labels.text.stroke", stylers: [{ visibility: "off" }] }, { featureType: "landscape.man_made", elementType: "all", stylers: [{ lightness: "3" }] }, { featureType: "poi", elementType: "all", stylers: [{ visibility: "on" }] }, { featureType: "poi", elementType: "geometry", stylers: [{ color: "#d7a4cc" }, { lightness: 21 }] }, { featureType: "poi.school", elementType: "labels.icon", stylers: [{ color: "#dd5ebf" }] }, { featureType: "road", elementType: "geometry", stylers: [{ visibility: "simplified" }] }, { featureType: "road", elementType: "geometry.fill", stylers: [{ weight: "1.44" }] }, { featureType: "road.highway", elementType: "geometry.fill", stylers: [{ color: "#f0dfed" }, { lightness: "-7" }] }, { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#000000" }, { lightness: 29 }, { weight: .2 }] }, { featureType: "road.highway", elementType: "labels.text.stroke", stylers: [{ visibility: "off" }] }, { featureType: "road.arterial", elementType: "all", stylers: [{ color: "#966e8d" }] }, { featureType: "road.arterial", elementType: "geometry", stylers: [{ lightness: "1" }, { color: "#e8cbe1" }] }, { featureType: "road.arterial", elementType: "labels.text.stroke", stylers: [{ visibility: "off" }] }, { featureType: "road.local", elementType: "geometry", stylers: [{ lightness: "0" }, { weight: "0.78" }, { color: "#d8a0cc" }] }, { featureType: "road.local", elementType: "labels.text.stroke", stylers: [{ visibility: "off" }] }, { featureType: "transit", elementType: "geometry", stylers: [{ color: "#e7d1e1" }, { lightness: "-2" }] }, { featureType: "water", elementType: "all", stylers: [{ color: "#8f6986" }] }, { featureType: "water", elementType: "geometry", stylers: [{ color: "#c37bb2" }, { lightness: 17 }] }, { featureType: "water", elementType: "labels.text.stroke", stylers: [{ visibility: "off" }] }]
+      });
+
+      zoomIn.addEventListener("click", () => {
+        map.setZoom(map.getZoom() + 1);
+      });
+
+      zoomOut.addEventListener("click", () => {
+        map.setZoom(map.getZoom() - 1);
+      });
+
+      const logo = `<svg width="79" height="61" viewBox="0 0 79 61" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.18605 0H79V60.3217L0 52.6667L9.18605 0Z" fill="#C37BB2"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M18.5152 17.4536V20.2094H26.6202C31.0779 20.2094 34.7252 20.2859 34.7252 20.3796C34.7252 20.4731 31.0687 25.3592 26.6 31.2375C22.1311 37.1158 18.4286 41.9997 18.3726 42.0905C18.3163 42.1814 23.2049 42.2559 29.2359 42.2559H40.2016V28.4768V14.6978H29.3584H18.5152V17.4536ZM45.0208 28.4768V42.2559H47.5399H50.059V39.4807V36.7055L52.1622 33.9538L54.2653 31.2024L57.118 35.5716C58.6871 37.9749 60.3024 40.4618 60.7077 41.0985L61.4444 42.2559H64.4045C66.0322 42.2559 67.3643 42.22 67.3643 42.1759C67.3643 42.1318 65.1464 38.7904 62.4356 34.7504C59.7248 30.7104 57.5069 27.2799 57.5069 27.1271C57.5069 26.9744 57.6171 26.7808 57.752 26.697C57.8867 26.613 59.8737 24.0029 62.1675 20.8968C64.4614 17.7904 66.4333 15.125 66.5494 14.9733C66.7179 14.7538 64.5534 14.6978 55.8907 14.6978H45.0208V28.4768Z" fill="#ECEAE5"/>
+        </svg>
+      `
+      new google.maps.Marker({
+        icon: {
+          anchor: new google.maps.Point(79 / 2, 61 / 2),
+          url: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(logo)
+        },
+        position: center,
+        map: map,
+        title: "Hello World!",
+        draggable: true,
+        zIndex: 10,
+
+      });
+    }
+
+    initMap()
+
+  </script>
+
+</body>
+
+</html>
